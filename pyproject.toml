@@ -7,7 +7,8 @@ readme = "README.md"
 packages = [{include = "tsvc_runner"}]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
+pyyaml = "^6.0.2"
 
 [build-system]
 requires = ["poetry-core"]
