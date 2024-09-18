@@ -148,4 +148,4 @@ if __name__ == "__main__":
             print(Fore.RED, end="")
         elif speedup >= 4:
             print(Fore.CYAN, end="")
-        print(f"{speedup:1.3f}x SPEEDUP{Style.RESET_ALL}")
+        print(f"{speedup:1.3f}x{Style.RESET_ALL}")
