@@ -144,8 +144,8 @@ if __name__ == "__main__":
             print(f"{Fore.YELLOW}NOVEC\t{Style.RESET_ALL}", end="")
 
         speedup = novec_result.duration / vec_result.duration
-        if speedup > 1:
-            print(Fore.GREEN, end="")
-        else:
+        if speedup < 1:
             print(Fore.RED, end="")
+        elif speedup >= 4:
+            print(Fore.CYAN, end="")
         print(f"{speedup:1.3f}x SPEEDUP{Style.RESET_ALL}")
