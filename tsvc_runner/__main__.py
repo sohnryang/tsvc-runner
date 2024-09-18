@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing as mp
 import shutil
 import subprocess
 from collections import defaultdict
@@ -10,11 +11,12 @@ import yaml
 from colorama import Fore, Style, just_fix_windows_console
 
 
-def build_tsvc(tsvc_root: str, makefile_path: str):
+def build_tsvc(tsvc_root: str, makefile_path: str, build_all: bool):
     shutil.copyfile(
         makefile_path, path.join(tsvc_root, "makefiles/Makefile.tsvc-runner")
     )
-    subprocess.run(["make", "clean"], cwd=tsvc_root)
+    if build_all:
+        subprocess.run(["make", "clean"], cwd=tsvc_root)
     subprocess.run(["make", "COMPILER=tsvc-runner", "VEC_REPORT=1"], cwd=tsvc_root)
 
 
@@ -58,30 +60,43 @@ class BenchmarkOutput:
         return cls(line_split[0], float(line_split[1]), line_split[2])
 
 
+def run_benchmark(binary_path: str, output_queue: mp.SimpleQueue):
+    proc = subprocess.Popen(
+        ["stdbuf", "-o0", binary_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    for line in proc.stdout:  # type: ignore
+        if line.startswith(b"Loop"):
+            continue
+        output_queue.put(BenchmarkOutput.from_output_line(line))
+    output_queue.put(None)
+
+
 def run_benchmarks(
     tsvc_root: str,
 ) -> Generator[tuple[BenchmarkOutput, BenchmarkOutput]]:
     binary_root = path.join(tsvc_root, "bin/tsvc-runner")
-    novec_proc = subprocess.Popen(
-        [path.join(binary_root, "tsvc_novec_default")],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    vec_proc = subprocess.Popen(
-        [path.join(binary_root, "tsvc_vec_default")],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    novec_line: bytes
-    vec_line: bytes
-    for novec_line, vec_line in zip(novec_proc.stdout, vec_proc.stdout):  # type: ignore
-        if novec_line.startswith(b"Loop"):
-            continue
+    novec_binary_path = path.join(binary_root, "tsvc_novec_default")
+    vec_binary_path = path.join(binary_root, "tsvc_vec_default")
 
-        yield (
-            BenchmarkOutput.from_output_line(novec_line),
-            BenchmarkOutput.from_output_line(vec_line),
-        )
+    novec_queue = mp.SimpleQueue()
+    vec_queue = mp.SimpleQueue()
+    novec_thread = mp.Process(
+        target=run_benchmark, args=(novec_binary_path, novec_queue)
+    )
+    vec_thread = mp.Process(target=run_benchmark, args=(vec_binary_path, vec_queue))
+    novec_thread.start()
+    vec_thread.start()
+
+    while True:
+        novec_result = novec_queue.get()
+        vec_result = vec_queue.get()
+        if novec_result is None:
+            break
+
+        yield (novec_result, vec_result)
+
+    novec_thread.join()
+    vec_thread.join()
 
 
 if __name__ == "__main__":
@@ -102,8 +117,11 @@ if __name__ == "__main__":
         default="./Makefile",
         dest="makefile",
     )
+    parser.add_argument(
+        "-B", help="rebuild all", action="store_true", dest="rebuild_all"
+    )
     parsed = parser.parse_args()
-    build_tsvc(parsed.tsvc_root, parsed.makefile)
+    build_tsvc(parsed.tsvc_root, parsed.makefile, parsed.rebuild_all)
 
     default_opt_record = parse_opt_record(
         path.join(parsed.tsvc_root, "src/tsvc_vec.o_default.opt.yml")
