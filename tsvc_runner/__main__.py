@@ -1,4 +1,5 @@
 import argparse
+import csv
 import multiprocessing as mp
 import shutil
 import subprocess
@@ -120,6 +121,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-B", help="rebuild all", action="store_true", dest="rebuild_all"
     )
+    parser.add_argument(
+        "-o",
+        type=str,
+        help="report output",
+        default="benchmark_result.csv",
+        dest="report_output",
+    )
     parsed = parser.parse_args()
     build_tsvc(parsed.tsvc_root, parsed.makefile, parsed.rebuild_all)
 
@@ -127,13 +135,15 @@ if __name__ == "__main__":
         path.join(parsed.tsvc_root, "src/tsvc_vec.o_default.opt.yml")
     )
     vectorization_status = check_vectorization_status(default_opt_record)
+    report_items = []
     for novec_result, vec_result in run_benchmarks(parsed.tsvc_root):
         assert novec_result.function_name == vec_result.function_name
 
         function_name = novec_result.function_name
         print(f"{function_name}:\t", end="")
 
-        if novec_result.checksum == vec_result.checksum:
+        checksum_match = novec_result.checksum == vec_result.checksum
+        if checksum_match:
             print(f"OK\t", end="")
         else:
             print(f"{Fore.RED}MISMATCH\t{Style.RESET_ALL}", end="")
@@ -149,3 +159,18 @@ if __name__ == "__main__":
         elif speedup >= 4:
             print(Fore.CYAN, end="")
         print(f"{speedup:1.3f}x{Style.RESET_ALL}")
+
+        report_items.append(
+            (
+                function_name,
+                checksum_match,
+                vectorization_status[function_name],
+                novec_result.duration,
+                vec_result.duration,
+            )
+        )
+
+    with open(parsed.report_output, "w") as f:
+        writer = csv.writer(f)
+        for item in report_items:
+            writer.writerow(item)
