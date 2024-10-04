@@ -12,7 +12,8 @@ from typing import cast
 
 import yaml
 from colorama import Fore, Style, just_fix_windows_console
-from elftools.elf.elffile import ELFFile, SymbolTableSection
+from elftools.elf.elffile import ELFFile
+from elftools.elf.sections import SymbolTableSection
 
 
 def build_tsvc(tsvc_root: str, makefile_path: str, build_all: bool):
