@@ -10,6 +10,7 @@ packages = [{include = "tsvc_runner"}]
 python = "^3.8"
 pyyaml = "^6.0.2"
 colorama = "^0.4.6"
+pyelftools = "^0.31"
 
 [build-system]
 requires = ["poetry-core"]

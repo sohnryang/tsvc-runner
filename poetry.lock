@@ -12,6 +12,17 @@ files = [
 ]
 
 [[package]]
+name = "pyelftools"
+version = "0.31"
+description = "Library for analyzing ELF files and DWARF debugging information"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyelftools-0.31-py3-none-any.whl", hash = "sha256:f52de7b3c7e8c64c8abc04a79a1cf37ac5fb0b8a49809827130b858944840607"},
+    {file = "pyelftools-0.31.tar.gz", hash = "sha256:c774416b10310156879443b81187d182d8d9ee499660380e645918b50bc88f99"},
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0.2"
 description = "YAML parser and emitter for Python"
@@ -76,4 +87,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "dce2f960ad532a391f865af87b65eb0d5320de9b51b3d8d32c87b4cade678730"
+content-hash = "0a9f4c1e503b89be1af4d9896c1e8479c7987f355b050f2dbabe351ec3d106ee"
