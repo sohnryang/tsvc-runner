@@ -108,18 +108,21 @@ def run_benchmark(binary_path: str, output_queue: mp.SimpleQueue):
 
 
 def run_benchmarks(
-    tsvc_root: str, scalar_binary_path: str | None, vector_binary_path: str | None
+    tsvc_root: str,
+    precision: str,
+    scalar_binary_path: str | None,
+    vector_binary_path: str | None,
 ) -> Generator[tuple[BenchmarkOutput, BenchmarkOutput]]:
     binary_root = path.join(tsvc_root, "bin/tsvc-runner")
     scalar_binary_path = (
         scalar_binary_path
         if scalar_binary_path is not None
-        else path.join(binary_root, "tsvc_novec_default")
+        else path.join(binary_root, f"tsvc_novec_{precision}")
     )
     vector_binary_path = (
         vector_binary_path
         if vector_binary_path is not None
-        else path.join(binary_root, "tsvc_vec_default")
+        else path.join(binary_root, f"tsvc_vec_{precision}")
     )
 
     novec_queue = mp.SimpleQueue()
@@ -190,13 +193,21 @@ if __name__ == "__main__":
         default="benchmark_result.csv",
         dest="report_output",
     )
+    parser.add_argument(
+        "-p",
+        "--precison",
+        type=str,
+        help="precison of binary to run",
+        default="default",
+        dest="precision",
+    )
     parsed = parser.parse_args()
     if parsed.scalar_binary is None or parsed.vector_binary is None:
         build_tsvc(parsed.tsvc_root, parsed.makefile, parsed.rebuild_all)
 
     if parsed.vector_binary is None:
         default_opt_record = parse_opt_record(
-            path.join(parsed.tsvc_root, "src/tsvc_vec.o_default.opt.yml"),
+            path.join(parsed.tsvc_root, f"src/tsvc_vec.o_{parsed.precision}.opt.yml"),
         )
         vectorization_status = vectorization_status_from_record(default_opt_record)
     else:
@@ -205,7 +216,7 @@ if __name__ == "__main__":
         )
     report_items = []
     for novec_result, vec_result in run_benchmarks(
-        parsed.tsvc_root, parsed.scalar_binary, parsed.vector_binary
+        parsed.tsvc_root, parsed.precision, parsed.scalar_binary, parsed.vector_binary
     ):
         assert novec_result.function_name == vec_result.function_name
 
