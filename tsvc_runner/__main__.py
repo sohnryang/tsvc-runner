@@ -177,7 +177,7 @@ if __name__ == "__main__":
         "--objdump-command",
         type=str,
         help="objdump command for disassembly",
-        default="riscv64-unknown-linux-gnu-objdump",
+        default="objdump",
         dest="objdump_command",
     )
     parser.add_argument(
