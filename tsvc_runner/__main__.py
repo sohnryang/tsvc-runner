@@ -242,16 +242,28 @@ if __name__ == "__main__":
         print(f"{speedup:1.3f}x{Style.RESET_ALL}")
 
         report_items.append(
-            (
-                function_name,
-                checksum_match,
-                vectorization_status[function_name],
-                novec_result.duration,
-                vec_result.duration,
-            )
+            {
+                "function_name": function_name,
+                "scalar_checksum": novec_result.checksum,
+                "vector_checksum": vec_result.checksum,
+                "vectorization_status": vectorization_status[function_name],
+                "vector_runtime": novec_result.duration,
+                "scalar_runtime": vec_result.duration,
+            }
         )
 
     with open(parsed.report_output, "w") as f:
-        writer = csv.writer(f)
+        writer = csv.DictWriter(
+            f,
+            [
+                "function_name",
+                "scalar_checksum",
+                "vector_checksum",
+                "vectorization_status",
+                "vector_runtime",
+                "scalar_runtime",
+            ],
+        )
+        writer.writeheader()
         for item in report_items:
             writer.writerow(item)
