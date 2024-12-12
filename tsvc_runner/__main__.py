@@ -247,8 +247,8 @@ if __name__ == "__main__":
                 "scalar_checksum": novec_result.checksum,
                 "vector_checksum": vec_result.checksum,
                 "vectorization_status": vectorization_status[function_name],
-                "vector_runtime": novec_result.duration,
-                "scalar_runtime": vec_result.duration,
+                "scalar_runtime": novec_result.duration,
+                "vector_runtime": vec_result.duration,
             }
         )
 
@@ -260,8 +260,8 @@ if __name__ == "__main__":
                 "scalar_checksum",
                 "vector_checksum",
                 "vectorization_status",
-                "vector_runtime",
                 "scalar_runtime",
+                "vector_runtime",
             ],
         )
         writer.writeheader()
