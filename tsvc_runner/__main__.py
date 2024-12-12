@@ -216,7 +216,7 @@ if __name__ == "__main__":
         if checksum_match:
             print(f"OK\t", end="")
         else:
-            print(f"{Fore.RED}MISMATCH\t{Style.RESET_ALL}", end="")
+            print(f"MISMATCH\t", end="")
 
         if vectorization_status[function_name]:
             print(f"{Fore.GREEN}AUTOVEC\t{Style.RESET_ALL}", end="")
